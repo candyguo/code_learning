@@ -14,6 +14,8 @@
 #include <mutex>
 #include <algorithm>
 #include <list>
+#include <cmath>
+#include <cstring>
 
 // 每个数字都应该在数字所对应的位置上面
 int find_repeated_num(std::vector<int>& nums) {
@@ -948,7 +950,16 @@ bool isSameTree(TreeNode* p, TreeNode* q) {
     if(p ->val != q->val)
         return false;
     return isSameTree(p->left_child,q->left_child) && 
-           isSameTree(p->right_child,q->right_child);                        
+           isSameTree(p->right_child,q->right_child);                      
+}
+
+//递归的判断是否为相同的树状结构
+bool isSubtree(TreeNode* s, TreeNode* t) {
+  if(s == nullptr)
+    return false;
+  if(isSameTree(s, t))
+    return true;
+  return isSubtree(s->left_child, t) || isSubtree(s->right_child, t);
 }
 
 //左树和右树是否形成对称结构
@@ -1454,6 +1465,50 @@ void inorder_tranverce(TreeNode* root, std::vector<int>& results) {
     inorder_tranverce(root->left_child, results);
     results.push_back(root->val);
     inorder_tranverce(root->right_child, results);            
+}
+
+//找二叉搜索树中的众数
+std::vector<int> findMode(TreeNode* root) {
+  std::vector<int> results;
+  inorder_tranverce(root, results);
+  if(results.size() < 2)
+    return results;
+  // value and count
+  std::vector<std::pair<int, int>> final_results;
+  final_results.push_back({results.front(), 1});
+  for(int i = 1; i < results.size(); i++) {
+    if(results[i] == results[i-1])
+      final_results.back().second++;
+    else {
+        final_results.push_back({results[i], 1});
+    }  
+  }
+
+  std::sort(final_results.begin(), final_results.end(), [](std::pair<int, int> a, 
+  std::pair<int, int> b){
+    return a.second > b.second;
+  });
+  
+  std::vector<int> mode_result;
+  mode_result.push_back(final_results[0].first);
+  for(int i = 1; i < final_results.size(); i++) {
+    if(final_results[i].second != final_results[i-1].second)
+      break;
+    else
+      mode_result.push_back(final_results[i].first);  
+  }
+  return mode_result;
+}
+
+
+int getMinimumDifference(TreeNode* root) {
+  std::vector<int> results;
+  inorder_tranverce(root, results);
+  int result = std::numeric_limits<int>::max();
+  for(int i = 0; i < results.size()-1; i++) {
+      result = std::min(result, std::abs(results[i+1] - results[i]));
+  }
+  return result;
 }
 
 bool isValidBST(TreeNode* root) {
@@ -3715,14 +3770,296 @@ public:
     }
 };
 
+void preorder1(Node_N* node, std::vector<int>& nums) {
+    if(node == nullptr)
+      return;
+    nums.push_back(node->val);
+    for(int i = 0; i < node->children.size(); i++) {
+        preorder1(node->children[i], nums);
+    }  
+}
+
 std::vector<int> preorder(Node_N* root) {
-    
+    std::vector<int> result;
+    preorder1(root, result);
+    return result;
+}
+
+void postorder1(Node_N* node, std::vector<int>& nums) {
+    if(node == nullptr)
+      return;
+    for(int i = 0; i < node->children.size(); i++) {
+        postorder1(node->children[i], nums);
+    }
+    nums.push_back(node->val);
+}
+
+std::vector<int> postorder(Node_N* root) {
+    std::vector<int> result;
+    postorder1(root, result);
+    return result;
+}
+
+std::vector<int> rightSideView(TreeNode* root) {
+  std::vector<int> result;
+  std::queue<TreeNode*> nodes;
+  if(root == nullptr)
+    return result;
+  nodes.push(root);
+  std::vector<TreeNode*> current_level_nodes;
+  current_level_nodes.push_back(root);
+  while(!nodes.empty()) {
+    while(!nodes.empty()) {
+      current_level_nodes.push_back(nodes.front());
+      nodes.pop();
+    }
+    result.push_back(current_level_nodes.back()->val);
+    for(int i = 0; i < current_level_nodes.size(); i++) {
+        if(current_level_nodes[i]->left_child != nullptr)
+          nodes.push(current_level_nodes[i]->left_child);
+        if(current_level_nodes[i]->right_child != nullptr)
+          nodes.push(current_level_nodes[i]->right_child);  
+    }
+    current_level_nodes.clear();
+  }
+  return result;
+}
+
+std::vector<double> averageOfLevels(TreeNode* root) {
+  std::vector<double> result;
+  std::queue<TreeNode*> nodes;
+  if(root == nullptr)
+    return result;
+  nodes.push(root);
+  std::vector<TreeNode*> current_level_nodes;
+  while(!nodes.empty()) {
+      while(!nodes.empty()) {
+          current_level_nodes.push_back(nodes.front());
+          nodes.pop();
+      }
+      double sum = 0;
+      for(int i = 0; i < current_level_nodes.size(); i++) {
+          sum += current_level_nodes[i]->val;
+      }
+      result.push_back(sum / current_level_nodes.size());
+      for(int i = 0; i < current_level_nodes.size(); i++) {
+          if(current_level_nodes[i]->left_child != nullptr)
+            nodes.push(current_level_nodes[i]->left_child);
+          if(current_level_nodes[i]->right_child != nullptr)
+            nodes.push(current_level_nodes[i]->right_child);  
+      }
+      current_level_nodes.clear();
+  }
+  return result;  
+}
+
+TreeNode* invertTree(TreeNode* root) {
+  if(root == nullptr)
+    return nullptr;
+  if(root->left_child == nullptr && root->right_child == nullptr)
+    return nullptr;
+  TreeNode* tmp = root->left_child;
+  root->left_child = root->right_child;
+  root->right_child = tmp;
+  invertTree(root->left_child);
+  invertTree(root->right_child);
+  return root;
+}
+
+//先填满当前层，再把下一层的数据都放到队列中
+int findBottomLeftValue(TreeNode* root) {
+  int result = 0;
+  std::queue<TreeNode*> nodes;
+  if(root == nullptr)
+    return result;
+  nodes.push(root);
+  std::vector<TreeNode*> current_level_nodes;
+  current_level_nodes.push_back(root);
+  while(!nodes.empty()) {
+    while(!nodes.empty()) {
+      current_level_nodes.push_back(nodes.front());
+      nodes.pop();
+    }
+    result = current_level_nodes.front()->val;
+    for(int i = 0; i < current_level_nodes.size(); i++) {
+        if(current_level_nodes[i]->left_child != nullptr)
+          nodes.push(current_level_nodes[i]->left_child);
+        if(current_level_nodes[i]->right_child != nullptr)
+          nodes.push(current_level_nodes[i]->right_child);  
+    }
+    current_level_nodes.clear();
+  }
+  return result;
+}
+
+bool hasPathSum(TreeNode* root, int sum) {
+    if(root == nullptr)
+      return false;
+    if(root->left_child == nullptr && root->right_child == nullptr) {
+        if(root->val == sum)
+          return true;
+        else
+          return false;
+    }
+    return hasPathSum(root->left_child, sum - root->val) || hasPathSum(root->right_child, sum - root->val);  
+}
+
+//中间的result参数代表了当前遍历的结果
+void binaryTreePaths_helper(TreeNode* root, std::vector<int> result, std::vector<std::vector<int>>& results) {
+    if(root == nullptr)
+      return;
+    result.push_back(root->val);
+    if(root->left_child == nullptr && root->right_child == nullptr) {
+        results.push_back(result);
+    } else {
+        binaryTreePaths_helper(root->left_child, result, results);
+        binaryTreePaths_helper(root->right_child, result, results);
+    }
+}
+
+std::vector<std::string> binaryTreePaths(TreeNode* root) {
+  std::vector<std::string> result_strings;
+  std::vector<int> result;
+  std::vector<std::vector<int>> results;
+  binaryTreePaths_helper(root, result, results);
+  for(int i = 0;i < results.size(); i++) {
+      std::string tmp = std::to_string(results[i].front());
+      for(int j = 1; j < results[i].size(); j++) {
+          tmp += ("->" + std::to_string(results[i][j]));
+      }
+      result_strings.push_back(tmp);
+  }
+  return result_strings;
+}
+
+std::vector<std::vector<int>> pathSum(TreeNode* root, int sum) {
+  std::vector<int> result;
+  std::vector<std::vector<int>> results;
+  binaryTreePaths_helper(root, result, results);
+  std::vector<std::vector<int>> final_results;
+  for(int i = 0; i < results.size(); i++){
+    int tmp_sum = 0;
+    for(int j = 0; j < results[i].size(); j++) {
+        tmp_sum += results[i][j];
+    }
+    if(tmp_sum == sum)
+      final_results.push_back(results[i]);
+  }
+  return final_results;
+}
+
+TreeNode* mergeTrees(TreeNode* t1, TreeNode* t2) {
+  if(t1 == nullptr)
+    return t2;
+  if(t2 == nullptr)
+    return t1;
+  t1->val += t2->val;
+  t1->left_child = mergeTrees(t1->left_child, t2->left_child);
+  t1->right_child = mergeTrees(t1->right_child, t2->right_child);
+  return t1;    
+}
+
+void backtracking(int n, int k, int start_index, std::vector<int> result, std::vector<std::vector<int>>& results) {
+    if(result.size() == k) {
+        results.push_back(result);
+        return;
+    }
+    for(int i = start_index; i <= n; i++) {
+        result.push_back(i);
+        backtracking(n, k, i+1, result, results);
+        result.pop_back();
+    }
+}
+
+//回溯的减枝优化版本
+void backtracking_jianzhi(int n, int k, int start_index, std::vector<int> result, std::vector<std::vector<int>>& results) {
+    if(result.size() == k) {
+        results.push_back(result);
+        return;
+    }
+    for(int i = start_index; i <= (n - k + 1 + result.size()); i++) {
+        result.push_back(i);
+        backtracking_jianzhi(n, k, i+1, result, results);
+        result.pop_back();
+    }
+}
+
+//从n个数中选择k个数字的组合问题，利用回溯算法解决
+std::vector<std::vector<int>> combine(int n, int k) {
+  std::vector<int> result;
+  std::vector<std::vector<int>> results;
+  backtracking_jianzhi(n, k, 1, result, results);
+  return results;
+}
+
+//尽可能的让饥饿度最小的孩子先满足需求
+int findContentChildren(std::vector<int>& g, std::vector<int>& s) {
+  std::sort(g.begin(), g.end());
+  std::sort(s.begin(), s.end());
+  int result = 0;
+  int i = 0;
+  int j = 0;
+  while(i < g.size() && j < s.size()) {
+      if(g[i] <= s[j]) {
+          result++;
+          i++;
+          j++;
+      } else {
+          j++;
+      }
+  }
+  return result;
+}
+
+//初始全部置为1，从左到右遍历一遍，比左边评分大，则糖果加1
+int candy(std::vector<int>& ratings) {
+  std::vector<int> candies(ratings.size(), 1);
+  for(int i = 1; i < ratings.size(); i++) {
+      if(ratings[i] > ratings[i-1])
+        candies[i] = candies[i-1] + 1;
+  }
+  //从右到左遍历，比右边大，则对应的糖果比右边多1
+  for(int i = ratings.size()-2; i >= 0; i--) {
+      if(ratings[i] > ratings[i+1]) {
+          if(candies[i] <= candies[i+1])
+            candies[i] = candies[i+1] + 1;
+      }
+  }
+  return std::accumulate(candies.begin(), candies.end(), 0);
+}
+
+void delete_test() {
+    int* a = new int(100);
+    int* b = a;
+    for(int i = 0; i< 100;i++) {
+        a[i] = i;
+    }
+    a = nullptr;
+    //delete []a;
+    std::cout<< b[10] << std::endl;
+}
+
+int eraseOverlapIntervals(std::vector<std::vector<int>>& intervals) {
+  if(intervals.size() < 2)
+    return 0; // 不需要移除  
+  //按照终点
+  std::sort(intervals.begin(), intervals.end(), [](std::vector<int> a, std::vector<int> b){
+    return a[1] < b[1];
+  });
+  int result = 1;
+  int end = intervals[0][1];
+  for(int i = 1; i < intervals.size(); i++) {
+      if(intervals[i][0] >= end) {
+          result++;
+          end = intervals[i][1];
+      }
+  }
+  return intervals.size() - result;
 }
 
 int main()
 {
-    std::vector<int> nums = {2, 1, 5, 6, 2, 3};
-    std::cout << largestRectangleArea(nums) << std::endl;
-    return 0;
+  std::vector<std::vector<int>> intervals = {{1,2}, {2,3},{3,4},{1,3}};
+  std::cout<<"total candy: " << eraseOverlapIntervals(intervals) << std::endl;
 }
 
