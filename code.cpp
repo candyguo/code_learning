@@ -4057,9 +4057,178 @@ int eraseOverlapIntervals(std::vector<std::vector<int>>& intervals) {
   return intervals.size() - result;
 }
 
+std::vector<int> twoSum_1(std::vector<int>& numbers, int target) {
+  std::vector<int> result;
+  int start_index = 0;
+  int end_index = numbers.size() - 1;
+  while(start_index < end_index) {
+      int sum = numbers[start_index] + numbers[end_index];
+      if(sum == target)
+        return {start_index+1, end_index+1};
+      else if(sum < target)
+        start_index++;
+      else
+        end_index--;  
+  }
+  return result;
+}
+
+void merge(std::vector<int>& nums1, int m, std::vector<int>& nums2, int n) {
+  int i = 0;
+  int j = 0;
+  int k = 0;
+  std::vector<int> c(m+n, 0);
+  while(i < m && j < n) {
+      if(nums1[i] <= nums2[j]) {
+        c[k++] = nums1[i];
+        i++;
+      } else {
+        c[k++] = nums2[j];
+        j++;  
+      }
+  }
+  while(i < m) {
+      c[k++] = nums1[i++];
+  }
+  while(j < n) {
+      c[k++] = nums2[j++];
+  }
+  nums1 = c;        
+}
+
+std::string minWindow(std::string s, std::string t) {
+  //用长度128的数组映射字符
+  std::vector<int> chars(128, 0); //t中字符出现的次数
+  std::vector<bool> flag(128, false);//t中是否出现某个字符
+  return "hello";
+}
+
+int sqrt(int x) {
+  if(x == 1)
+    return 1;
+
+  int start_value = 0;
+  int end_value = x;
+  
+  while(start_value < end_value) {
+      if((end_value - start_value) == 1)
+        return start_value;
+      int middle_value = start_value + (end_value - start_value) / 2; 
+      int product = x  / middle_value;
+      if(product == middle_value)
+        return middle_value;
+      else if(product > middle_value ) {
+        start_value = middle_value;
+      } else {
+        end_value = middle_value;
+      }  
+  }
+  return 0;
+}
+
+std::vector<int> searchRange(std::vector<int>& nums, int target) {
+  if(nums.size() == 1) {
+      if(nums[0] == target)
+        return {0, 0};
+      else
+        return {-1, -1};  
+  }
+    return {-1,-1};
+  int start_index = 0;
+  int end_index = nums.size() - 1;
+  int target_index = -1;
+  while(start_index < end_index) {
+      if((end_index - start_index) == 1) {
+          if(nums[start_index] != target)
+            start_index = end_index;
+      }
+      int middle_index = start_index + (end_index - start_index) / 2;
+      if(nums[middle_index] == target) {
+          target_index = middle_index;
+          break;
+      } else if(nums[middle_index] < target) {
+          start_index = middle_index;
+      } else {
+          end_index = middle_index;
+      }
+  }
+  if(target_index == -1)
+    return {-1, -1};
+  int l = target_index-1;
+  int r = target_index+1;
+  while(l >= 0) {
+      if(nums[l] == target)
+        l--;
+      else {
+          l++;
+          break;
+      }  
+  }
+  l = std::max(l, 0);
+  while(r < nums.size()) {
+      if(nums[r] == target)
+        r++;
+      else {
+        r--;
+        break;  
+      }  
+  }
+  r = std::min(r, static_cast<int>(nums.size()) - 1);
+  return {l, r};  
+}
+
+bool search1(std::vector<int>& nums, int target) {
+  for(int i = 0; i < nums.size(); i++) {
+      if(nums[i] == target)
+        return true;
+  }
+  return false;
+}
+
+//对l到r之间的数据进行一次快速排序
+int quick_selection(std::vector<int>& nums, int l, int r) {
+  int i = l+1;
+  int j = r;
+  int pivot = nums[l];
+  while(true) {
+      //i小于右边界
+      while(i < r && nums[i] <= pivot)
+        i++;
+      //j大于左边界  
+      while(j > l && nums[j] >= pivot)
+        j--;
+      if(i >= j)
+        break;  
+      //相遇
+      std::swap(nums[i], nums[j]);    
+  }
+  std::swap(nums[l], nums[j]);
+  return j;
+}
+
+int findKthLargest(std::vector<int>& nums, int k) {
+  int i = 0;
+  int j = nums.size()-1;
+  int target = nums.size() - k;
+  while(i < j) {
+      int mid = quick_selection(nums, i, j);
+      if(mid == target)
+        return nums[mid];
+      else if(mid < target) {
+          i = mid + 1;
+      } else {
+          j = mid - 1;
+      }  
+  }
+  return nums[i];
+}
+
 int main()
 {
-  std::vector<std::vector<int>> intervals = {{1,2}, {2,3},{3,4},{1,3}};
-  std::cout<<"total candy: " << eraseOverlapIntervals(intervals) << std::endl;
+  std::vector<int> a = {3, 4, 5, 6, 7, 8};
+  auto iter = std::upper_bound(a.begin(), a.end(), 5);
+  std::cout << *(iter-1) << std::endl;
+  std::cout << *iter << std::endl;
+  return 0;
 }
 
