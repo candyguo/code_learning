@@ -3959,39 +3959,6 @@ TreeNode* mergeTrees(TreeNode* t1, TreeNode* t2) {
   return t1;    
 }
 
-void backtracking(int n, int k, int start_index, std::vector<int> result, std::vector<std::vector<int>>& results) {
-    if(result.size() == k) {
-        results.push_back(result);
-        return;
-    }
-    for(int i = start_index; i <= n; i++) {
-        result.push_back(i);
-        backtracking(n, k, i+1, result, results);
-        result.pop_back();
-    }
-}
-
-//回溯的减枝优化版本
-void backtracking_jianzhi(int n, int k, int start_index, std::vector<int> result, std::vector<std::vector<int>>& results) {
-    if(result.size() == k) {
-        results.push_back(result);
-        return;
-    }
-    for(int i = start_index; i <= (n - k + 1 + result.size()); i++) {
-        result.push_back(i);
-        backtracking_jianzhi(n, k, i+1, result, results);
-        result.pop_back();
-    }
-}
-
-//从n个数中选择k个数字的组合问题，利用回溯算法解决
-std::vector<std::vector<int>> combine(int n, int k) {
-  std::vector<int> result;
-  std::vector<std::vector<int>> results;
-  backtracking_jianzhi(n, k, 1, result, results);
-  return results;
-}
-
 //尽可能的让饥饿度最小的孩子先满足需求
 int findContentChildren(std::vector<int>& g, std::vector<int>& s) {
   std::sort(g.begin(), g.end());
@@ -4221,6 +4188,135 @@ int findKthLargest(std::vector<int>& nums, int k) {
       }  
   }
   return nums[i];
+}
+
+void backtracking(int n, int k, int start_index, std::vector<int> result, std::vector<std::vector<int>>& results) {
+    if(result.size() == k) {
+        results.push_back(result);
+        return;
+    }
+    for(int i = start_index; i <= n; i++) {
+        result.push_back(i);
+        backtracking(n, k, i+1, result, results);
+        result.pop_back();
+    }
+}
+
+//回溯的减枝优化版本
+void backtracking_jianzhi(int n, int k, int start_index, std::vector<int> result, std::vector<std::vector<int>>& results) {
+    if(result.size() == k) {
+        results.push_back(result);
+        return;
+    }
+    for(int i = start_index; i <= (n - k + 1 + result.size()); i++) {
+        result.push_back(i);
+        backtracking_jianzhi(n, k, i+1, result, results);
+        result.pop_back();
+    }
+}
+
+//从n个数中选择k个数字的组合问题，利用回溯算法解决
+std::vector<std::vector<int>> combine1(int n, int k) {
+  std::vector<int> result;
+  std::vector<std::vector<int>> results;
+  backtracking_jianzhi(n, k, 1, result, results);
+  return results;
+}
+
+// 并查集
+class UF {
+  public:
+  UF(int n) {
+    father = std::vector<int>(n);
+    //初始的时候，每个人的代理人是他自己
+    std::iota(father.begin(), father.end(), 0);
+  }
+
+  //循环的对代理人进行追溯
+  int getFather(int p) {
+    while(p != father[p]) {
+      p = father[p];
+    }
+    return p;
+  }
+
+  //链接两个节点,f[3的代表人] = 4的代表人
+  void connect(int p, int q) {
+    father[getFather(p)] = getFather(q); 
+  }
+  
+  bool isConnected(int p, int q) {
+    return getFather(p) == getFather(q);
+  }
+
+
+  std::vector<int> father;
+};
+
+std::vector<int> findRedundantConnection(std::vector<std::vector<int>>& edges) {
+  int N = edges.size();
+  UF uf(N+1);
+  for(int i = 0; i < edges.size(); i++) {
+    auto edge = edges[i];
+    if(uf.isConnected(edge[0], edges[1]))
+      return edge;
+    uf.connect(edge[0], edge[1]);  
+  }
+  return {-1, -1};
+}
+
+class LRUCache {
+public:
+    LRUCache(int capacity) {
+      capacity_ = capacity;
+    }
+    
+    int get(int key) {
+      if(elements_.count(key) != 0) {
+        for(auto iter = ages_.begin(); iter != ages_.end(); iter++) {
+          if((*iter) == key) {
+            ages_.erase(iter);
+            ages_.push_front(key);
+            break;
+          }
+        }
+        return elements_[key]; 
+      }
+      return -1;  
+    }
+    
+    void put(int key, int value) {
+      if(elements_.count(key) != 0) {
+        elements_[key] = value;
+        for(auto iter = ages_.begin(); iter != ages_.end(); iter++) {
+          if((*iter) == key) {
+            ages_.erase(iter);
+            ages_.push_front(key);
+            break;
+          }
+        }
+      } else {
+        if(elements_.size() < capacity_) {
+          elements_[key] = value;
+        }
+        else {
+          int oldest_key = ages_.back();
+          ages_.pop_back();
+          elements_.erase(oldest_key);
+          elements_[key] = value;
+        }
+        ages_.push_front(key);  
+      }
+    }
+    
+    std::unordered_map<int, int> elements_;
+    //从最新的到最老的
+    std::list<int> ages_;
+    int capacity_;
+};
+
+int maxAreaOfIsland(std::vector<std::vector<int>>& grid) {
+
 }
 
 int main()
