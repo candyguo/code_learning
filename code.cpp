@@ -568,6 +568,16 @@ bool isPowerOfTwo(int n) {
     return cnt == 1;        
 }
 
+int hammingDistance(int x, int y) {
+  int diff = x ^ y;
+  int result = 0;
+  while(diff) {
+      result += diff & 1;
+      diff >>= 1;
+  }
+  return result;
+}
+
 std::vector<std::vector<int>> threeSum(std::vector<int>& nums) {
     std::vector<std::vector<int>> results;
     if(nums.size() < 3)
@@ -4258,7 +4268,7 @@ std::vector<int> findRedundantConnection(std::vector<std::vector<int>>& edges) {
   UF uf(N+1);
   for(int i = 0; i < edges.size(); i++) {
     auto edge = edges[i];
-    if(uf.isConnected(edge[0], edges[1]))
+    if(uf.isConnected(edge[0], edge[1]))
       return edge;
     uf.connect(edge[0], edge[1]);  
   }
@@ -4315,8 +4325,405 @@ public:
     int capacity_;
 };
 
-int maxAreaOfIsland(std::vector<std::vector<int>>& grid) {
+int dfs_islands(int i, int j, 
+               std::vector<std::vector<int>>& grid,
+               std::vector<std::vector<bool>>& visited) {
+  if(i < 0 || i >= grid.size() || j < 0 || j >= grid[0].size())
+    return 0;               
+  if(visited[i][j])
+    return 0;
+  visited[i][j] = true;
+  if(grid[i][j] == 0)
+    return 0;
+  else
+    return 1 + dfs_islands(i-1,j,grid,visited) +
+    dfs_islands(i+1, j, grid, visited) + 
+    dfs_islands(i, j-1, grid, visited) +
+    dfs_islands(i, j+1, grid, visited);
+}
 
+int maxAreaOfIsland(std::vector<std::vector<int>>& grid) {
+  int rows = grid.size();
+  int cols = grid[0].size();
+  std::vector<std::vector<bool>> visited(rows, std::vector<bool>(cols, false));
+  int max_area = 0;
+  for(int i = 0; i < rows; i++) {
+    for(int j = 0; j < cols; j++) {
+      max_area = std::max(max_area, dfs_islands(i, j, grid, visited));
+    }
+  }
+  return max_area;
+}
+
+//对于第k个人,遍历他所有的朋友
+void dfs_friends(int k,
+               std::vector<std::vector<int>>& M,
+               std::vector<bool>& visited) {
+  if(k < 0 || k >= M.size())
+    return;               
+  if(visited[k])
+    return;
+  visited[k] = true;
+  for(int i = 0; i < M.size(); i++) {
+    if(M[k][i] == 1 && !visited[i])
+      dfs_friends(i, M, visited);
+  }
+}
+
+/*
+1 0 0 1
+0 1 1 0
+0 1 1 1
+1 0 1 1
+*/
+int findCircleNum(std::vector<std::vector<int>>& M) {
+  int result = 0;
+  int rows = M.size();
+  int cols = M[0].size();
+  std::vector<bool> visited(rows, false);
+  for(int i = 0; i < rows; i++) {
+    if(!visited[i]) {
+      dfs_friends(i, M, visited);
+      result++;
+    }
+  }
+  return result;
+}
+
+//对图进行遍历，广度优先搜索进行着色
+bool isBipartite1(std::vector<std::vector<int>>& graph) {
+  int n = graph.size();
+  std::vector<int> color(n, 0);
+  std::queue<int> q;
+  q.push(0);
+  color[0] = 1;
+  while(!q.empty()) {
+    int node = q.front();
+    q.pop();
+    std::vector<int> connected_nodes = graph[node];
+    for(int i = 0; i < connected_nodes.size(); i++) {
+      if(color[connected_nodes[i]] == 0) {
+        color[connected_nodes[i]] = color[node] == 1 ? 2 : 1;
+        q.push(connected_nodes[i]);
+      } else {
+        if(color[connected_nodes[i]] == color[node])
+          return false;
+      }
+    }
+  }
+  return true;
+}
+
+bool isBipartite(std::vector<std::vector<int>>& graph) {
+  int n = graph.size();
+  std::vector<int> color(n, 0);
+  std::queue<int> q;
+  for(int i = 0; i < n; i++) {
+    if(color[i] == 0) {
+      q.push(i);
+      color[i] = 1;
+    }
+
+    while(!q.empty()) {
+      int node = q.front();
+      q.pop();
+      std::vector<int> connected_nodes = graph[node];
+      for(int i = 0; i < connected_nodes.size(); i++) {
+        if(color[connected_nodes[i]] == 0) {
+          color[connected_nodes[i]] = color[node] == 1 ? 2 : 1;
+          q.push(connected_nodes[i]);
+        } else {
+          if(color[connected_nodes[i]] == color[node])
+            return false;
+        }
+      }
+    }
+  }
+  return true;
+}
+
+int uniquePaths(int m, int n) {
+  std::vector<std::vector<int>> paths(m, std::vector<int>(n, 1));
+  for(int i = 1; i < m; i++) {
+    for(int j = 1; j < n; j++) {
+      paths[i][j] = paths[i-1][j] + paths[i][j-1];
+    }
+  }
+  return paths[m-1][n-1];
+}
+
+//拓扑排序问题，构建领接矩阵
+std::vector<int> findOrder(int numCourses, std::vector<std::vector<int>>& prerequisites) {
+  std::vector<std::vector<int>> graph(numCourses, std::vector<int>());
+  std::vector<int> indegree(numCourses, 0);
+  for(int i = 0; i < prerequisites.size();i++) {
+    //依赖于[1]的所有元素
+    graph[prerequisites[i][1]].push_back(prerequisites[i][0]);
+    indegree[prerequisites[i][0]]++;
+  }
+  std::vector<int> result;
+  //利用队列做广度优先遍历
+  std::queue<int> q;
+  for(int i = 0; i < numCourses; i++) {
+    if(!indegree[i])
+      q.push(i);
+  }
+  while(!q.empty()) {
+    int v = q.front();
+    result.push_back(v);
+    q.pop();
+    for(auto& e : graph[v]) {
+      indegree[e]--;
+      if(indegree[e] == 0)
+        q.push(e);
+    }
+  }
+  for(int i = 0; i < numCourses; i++) {
+    if(indegree[i] != 0)
+      return {};
+  }
+  return result;
+}
+
+int diameterOfBinaryTree(TreeNode* root) {
+  if(root == nullptr)
+    return 0;
+  int length_root = maxDepth(root->left_child) +  maxDepth(root->right_child);
+  int length_left = diameterOfBinaryTree(root->left_child);
+  int length_right = diameterOfBinaryTree(root->right_child);
+  return std::max(std::max(length_left, length_right), length_root);
+}
+
+int pathSum1(TreeNode* root, int sum) {
+    int result = 0;
+    if(root == nullptr)
+      return 0;
+    if(root->val == sum)
+      result = 1;
+    if(root->left_child == nullptr && root->right_child == nullptr)
+      return result;   
+    result = result + pathSum1(root->left_child, sum - root->val) +
+            pathSum1(root->right_child, sum - root->val) +
+            pathSum1(root->left_child, sum) +
+            pathSum1(root->right_child, sum);
+    return result;        
+}
+
+//把二进制逆序
+uint32_t reverseBits(uint32_t n) {
+  int result = 0;
+  //先左移一位，第一位是符号位
+  for(int i = 0; i < 32; i++) {
+    result <<= 1;
+    result += (n & 1);
+    n >>=1;
+  }
+  return result;     
+}
+
+bool isPowerOfFour(int n) {
+  if(n == 1)
+    return true;
+  if(n < 4)
+    return false;  
+  if(n % 4 != 0)
+    return false;
+  return isPowerOfFour(n / 4);  
+}
+
+bool isContainSameChar(const std::string& a,
+                       const std::string& b) {
+  std::unordered_map<char, bool> map_a;
+  for(int i =0; i < a.size(); i++) {
+    map_a[a[i]] = true;
+  }
+  for(int i = 0; i < b.size(); i++) {
+    if(map_a.count(b[i]))
+      return true;
+  }
+  return false;
+}
+
+int maxProduct1(std::vector<std::string>& words) {
+  int result = 0;
+  for(int i = 0; i < words.size(); i++) {
+    for(int j = i+1; j < words.size(); j++) {
+      if(!isContainSameChar(words[i], words[j]))
+        result = std::max(result, int(words[i].size()) * int(words[j].size()));
+    }
+  }
+  return result;
+}
+
+int maxProduct(std::vector<std::string>& words) {
+  std::vector<int> int_words;
+  //通过位运算检查单词是否相同
+  for(auto& word : words) {
+    int value = 0;
+    for(auto& c : word)
+      value |= (1 << (c - 'a'));
+    int_words.push_back(value);  
+  }
+  int result = 0;
+  for(int i = 0; i < words.size(); i++) {
+    for(int j = i+1; j < words.size(); j++) {
+      if(!(int_words[i] & int_words[j]))
+        result = std::max(result, int(words[i].size()) * int(words[j].size()));
+    }
+  }
+  return result;
+}
+
+//利用动态规划求解
+std::vector<int> countBits(int num) {
+  std::vector<int> results(num+1, 0);
+  for(int i = 1; i <= num; i++) {
+    if((i & 1) == 0) {
+      results[i] = results[i >> 1];
+    } else {
+      results[i] = results[i-1] + 1;
+    }
+  }
+  return results;
+}
+
+bool containsDuplicate(std::vector<int>& nums) {
+  std::unordered_map<int, int> num_count;
+  for(int i = 0; i < nums.size(); i++) {
+    if(num_count.count(nums[i]) == 0)
+      num_count[nums[i]] = 1;
+    else
+      return true;  
+  }
+  return false;
+}
+
+int countPrimes(int n) {
+  if(n <= 2)
+    return 0;
+  std::vector<bool> prime(n, true);
+  int count = n-2;
+  for(int i = 2; i < n; i++) {
+    for(int j = 2 * i; j < n; j+=i) {
+      if(prime[j]) {
+        prime[j] = false;
+        count--;
+      }
+    }
+  }
+  return count;  
+}
+
+std::string convertToBase7(int num) {
+  if(num == 0)
+    return "0";
+  bool is_negative = num < 0;
+  if(is_negative)
+    num = -num;
+  std::string result="";  
+  while(num) {
+    result = std::to_string(num % 7) + result;
+    num /= 7;
+  }
+  if(is_negative)
+    return "-" + result;
+  return result;    
+}
+
+int trailingZeroes(int n) {
+  return n == 0? 0: n / 5 + trailingZeroes(n / 5);
+}
+
+bool isPowerOfThree(int n) {
+  if(n == 1)
+    return true;
+  if(n < 3)
+    return false;  
+  if(n % 3 != 0)
+    return false;
+  return isPowerOfFour(n / 3);
+}
+
+class Solution1 {
+public:
+    /** @param head The linked list's head.
+        Note that the head is guaranteed to be not null, so it contains at least one node. */
+    Solution1(ListNode* head) {
+      ListNode* p = head;
+      while(p) {
+        nums.push_back(p->val);
+        p = p->next;
+      }
+    }
+    
+    /** Returns a random node's value. */
+    int getRandom() {
+      int random_index = random() % nums.size();
+      return nums[random_index];
+    }
+
+    std::vector<int> nums;
+};
+
+class Solution2 {
+public:
+Solution2(std::vector<int>& nums) {
+  origin_nums = nums;
+}
+
+/** Resets the array to its original configuration and return it. */
+std::vector<int> reset() {
+  return origin_nums;
+}
+
+/** Returns a random shuffling of the array. */
+std::vector<int> shuffle() {
+  // fisher-yate洗牌算法
+  if(origin_nums.empty())
+    return {};
+  std::vector<int> shuffle(origin_nums);
+  int n = shuffle.size();
+  for(int i = 0; i < n; i++) {
+    int pos = random() % (n-i); //随机区间被逐步的缩小
+    std::swap(shuffle[i], shuffle[i+pos]);
+  }
+  return shuffle;
+}
+
+std::vector<int> origin_nums;
+};
+
+//按照权重来进行随机的选择
+//使用前缀和来模拟
+class Solution3 {
+public:
+    Solution3(std::vector<int>& w) {
+      nums = w;
+    }
+    
+    int pickIndex() {
+
+    }
+
+    std::vector<int> nums;
+};
+
+char findTheDifference(std::string s, std::string t) {
+  std::unordered_map<char, int> char_map;
+  for(int i = 0; i < s.size(); i++) {
+    if(char_map.count(s[i]) == 0)
+      char_map[s[i]] = 1;
+    else
+      char_map[s[i]]++;  
+  }
+  for(int i = 0; i < t.size(); i++) {
+    char_map[t[i]]--;
+  }
+  for(auto iter = char_map.begin(); iter != char_map.end(); iter++) {
+    if(iter->second != 0)
+      return iter->first;
+  }
+  return s.front();
 }
 
 int main()
