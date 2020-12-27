@@ -4726,6 +4726,112 @@ char findTheDifference(std::string s, std::string t) {
   return s.front();
 }
 
+int numberOfArithmeticSlices(std::vector<int>& A) {
+    int n = A.size();
+    if(n < 3)
+      return 0;
+    std::vector<int> dp(n, 0);
+    for(int i = 2; i < n; i++) {
+        if((A[i] - A[i-1]) == (A[i-1] - A[i-2]))
+          dp[i] = dp[i-1] + 1;
+    }
+    return std::accumulate(dp.begin(), dp.end(), 0);
+}
+
+bool isIsomorphic(std::string s, std::string t) {
+    if(s.size() != t.size())
+      return false;
+    bool result = true;
+    std::map<char, char> map_s_t;
+    for(int i = 0; i < s.size(); i++) {
+        if(map_s_t.count(s[i]) != 0) {
+          if(map_s_t[s[i]] != t[i])
+            return false;
+        } else {
+          map_s_t[s[i]] = t[i];
+        }
+    }
+
+    std::map<char, char> map_t_s;
+        for(int i = 0; i < t.size(); i++) {
+        if(map_t_s.count(t[i]) != 0) {
+          if(map_t_s[t[i]] != s[i])
+            return false;
+        } else {
+          map_t_s[t[i]] = s[i];
+        }
+    }
+    return result;
+}
+
+// 01矩阵问题，　method1: 广度优先搜索
+std::vector<std::vector<int>> updateMatrix1(std::vector<std::vector<int>>& matrix) {
+    int dir[4][2] = {{-1, 0}, {1, 0},{0, 1}, {0, -1}};
+    int m = matrix.size();
+    int n = matrix.front().size();
+    std::vector<std::vector<int>> dist(m, std::vector<int>(n, 0));
+    std::vector<std::vector<int>> visited(m, std::vector<int>(n, false));
+    std::queue<std::pair<int, int>> q;
+    for(int i= 0; i < m; i++) {
+        for(int j = 0; j < n; j++) {
+            if(matrix[i][j] == 0) {
+              q.push({i, j});
+              visited[i][j] = true;  
+            }
+        }
+    }
+    while(!q.empty()) {
+        auto pos = q.front();
+        q.pop();
+        for(int i = 0; i < 4; i++) {
+            int new_i = pos.first + dir[i][0];
+            int new_j = pos.second + dir[i][1];
+            if(new_i >=0 && new_i < m && new_j >= 0 && new_j < n && !visited[new_i][new_j]) {
+                visited[new_i][new_j] = true;
+                dist[new_i][new_j] = dist[pos.first][pos.second]+1;
+                q.push({new_i, new_j});
+            }
+        }
+
+    }
+    return dist;
+}
+
+// 01矩阵问题，　method1: 动态规划　two pass 每个位置的dist是四种移动方法的动态规划，参照leetcode题解
+std::vector<std::vector<int>> updateMatrix(std::vector<std::vector<int>>& matrix) {
+    int m = matrix.size();
+    int n = matrix.front().size();
+    //初始的时候将每个位置的距离设为一个很大的值
+    std::vector<std::vector<int>> dist(m, std::vector<int>(n, INT64_MAX));
+    for(int i = 0; i < m; i++) {
+        for(int j = 0; j < n; j++) {
+            if(matrix[i][j] == 0)
+              dist[i][j] = 0;
+        }
+    }
+    for(int i = 0; i < m; i++) {
+        for(int j = 0; j < n; j++) {
+            if((i - 1) >= 0)
+              dist[i][j] = std::min(dist[i][j], dist[i-1][j] + 1);
+            if((j - 1) >= 0)
+              dist[i][j] = std::min(dist[i][j], dist[i][j-1] + 1); 
+        }
+    }
+    for(int i = m -1; i >= 0; i--) {
+        for(int j = n - 1; j >= 0; j--){
+            if((i+1) < m)
+              dist[i][j] = std::min(dist[i][j], dist[i+1][j] + 1);
+            if((j+1) < n)
+              dist[i][j] = std::min(dist[i][j], dist[i][j+1] + 1);  
+        }
+    }
+    return dist;
+}
+
+int maximalSquare(std::vector<std::vector<char>>& matrix) {
+
+}
+
 int main()
 {
   std::vector<int> a = {3, 4, 5, 6, 7, 8};
