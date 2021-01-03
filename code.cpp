@@ -4829,7 +4829,143 @@ std::vector<std::vector<int>> updateMatrix(std::vector<std::vector<int>>& matrix
 }
 
 int maximalSquare(std::vector<std::vector<char>>& matrix) {
+  int m = matrix.size();
+  int n = matrix.front().size();
+  // dp[i][j]表示以i,j为右下角的正方形的边长
+  std::vector<std::vector<int>> dp(m, std::vector<int>(n, 0));
+  int max_size = 0;
+  for(int i = 0; i < m; i++) {
+      for(int j = 0; j < n; j++) {
+          if(matrix[i][j] == '1') {
+              if(i == 0 || j == 0)
+                dp[i][j] = 1;
+              else {
+                dp[i][j] = std::min(dp[i-1][j-1], std::min(dp[i-1][j], dp[i][j-1])) + 1;
+              }
+              max_size = std::max(max_size, dp[i][j]);
+          }
+      }
+  }
+  return max_size * max_size;
+}
 
+// 1 4 9 6 25
+int numSquares(int n) {
+    std::vector<int> dp(n+1, std::numeric_limits<int>::max());
+    dp[0] = 0;
+    for(int i = 1; i <=n; i++) {
+        for(int j = 1; j * j < i; j++) {
+            dp[i] = std::min(dp[i], dp[i - j * j] + 1);
+        }
+    }
+    return dp[n];
+}
+
+std::vector<int> findDisappearedNumbers(std::vector<int>& nums) {
+    int n = nums.size();
+    std::vector<int> contained(n+1, -1);
+    for(int i = 0; i < nums.size(); i++) {
+        contained[nums[i]] = 1;
+    }
+    std::vector<int> result;
+    for(int i = 1; i <=n; i++) {
+        if(contained[i] == -1)
+          result.push_back(i);
+    }
+    return result;
+}
+
+void rotate(std::vector<std::vector<int>>& matrix) {
+    int m = matrix.size();
+    std::vector<std::vector<int>> result(m, std::vector<int>(m));
+    for(int i = 0; i < m; i++) {
+        for(int j = 0; j < m; j++) {
+            result[j][m-i-1] = matrix[i][j];
+        }
+    }
+    matrix = result;
+}
+
+bool searchMatrix(std::vector<std::vector<int>>& matrix, int target) {
+    int m = matrix.size();
+    int n = matrix.front().size();
+    int i = 0;
+    int j = n-1;
+    while(1) {
+        if(matrix[i][j] == target)
+          return true;
+        else if(matrix[i][j] > target)
+          j--;
+        else
+          i++;
+        if(j < 0 || i >= m)
+          return false;      
+    }
+    return true;    
+}
+
+
+// 1 0 2 3 4
+//到当前为止的最大值＝索引的时候可以完成一次分割
+int maxChunksToSorted(std::vector<int>& arr) {
+    int n = arr.size();
+    int cur_max = 0;
+    int chuck = 0;
+    for(int i = 0; i < n; i++) {
+        cur_max = std::max(arr[i], cur_max);
+        if(cur_max == i)
+          chuck++;
+    }
+    return chuck;
+}
+
+class MinStack {
+public:
+    /** initialize your data structure here. */
+    MinStack() {
+        
+    }
+    
+    void push(int x) {
+        norm_stack.push(x);
+        if(min_stack.empty())
+          min_stack.push(x);
+        else {
+          int top = min_stack.top();
+          min_stack.push(std::min(top, x));
+        }
+    }
+    
+    void pop() {
+        norm_stack.pop();
+        min_stack.pop();
+    }
+    
+    int top() {
+        return norm_stack.top();
+    }
+    
+    int getMin() {
+        return min_stack.top();
+    }
+
+    std::stack<int> norm_stack;
+    std::stack<int> min_stack;
+};
+
+bool wordBreak(std::string s, std::vector<std::string>& wordDict) {
+    // dp[i] 表示以第i个字母结尾是否满足条件
+    int n = s.size();
+    std::vector<bool> dp(n+1, false);
+    dp[0] = true;
+    for(int i = 1; i<= n; i++) {
+        for(auto& word : wordDict) {
+            int len = word.length();
+            if(i >= len && s.substr(i - len, len) == word)
+              dp[i] = dp[i] | dp[i-len];
+        }
+    }
+    return dp[n];
 }
 
 int main()
