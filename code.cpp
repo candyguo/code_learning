@@ -4233,6 +4233,43 @@ std::vector<std::vector<int>> combine1(int n, int k) {
   return results;
 }
 
+void backtracing(int start_index,
+          std::unordered_map<char, std::vector<char>>& char_map, 
+          const std::string& digits, 
+          std::string result, 
+          std::vector<std::string>& results) {
+  if(result.size() == digits.size()) {
+    results.push_back(result);
+    return;
+  }
+  if(start_index >= digits.size())
+    return;
+  std::vector<char> digit_char = char_map[digits[start_index]];
+  for(int j = 0; j < digit_char.size(); j++) {
+    result.push_back(digit_char[j]);
+    backtracing(start_index + 1,char_map, digits, result, results);
+    result.pop_back();
+  }
+}
+
+std::vector<std::string> letterCombinations(std::string digits) {
+  if(digits.empty())
+    return {};
+  std::unordered_map<char, std::vector<char>> char_map;
+  char_map['2'] = {'a', 'b', 'c'};
+  char_map['3'] = {'d', 'e', 'f'};
+  char_map['4'] = {'g', 'h', 'i'};
+  char_map['5'] = {'j', 'k', 'l'};
+  char_map['6'] = {'m','n', 'o'};
+  char_map['7'] = {'p', 'q', 'r', 's'};
+  char_map['8'] = {'t', 'u', 'v'};
+  char_map['9'] = {'w', 'x', 'y','z'};
+  std::string result;
+  std::vector<std::string> results;
+  backtracing(0, char_map, digits, result, results);
+  return results; 
+}
+
 // 并查集
 class UF {
   public:
@@ -4802,7 +4839,7 @@ std::vector<std::vector<int>> updateMatrix(std::vector<std::vector<int>>& matrix
     int m = matrix.size();
     int n = matrix.front().size();
     //初始的时候将每个位置的距离设为一个很大的值
-    std::vector<std::vector<int>> dist(m, std::vector<int>(n, INT64_MAX));
+    std::vector<std::vector<int>> dist(m, std::vector<int>(n, INT32_MAX / 2));
     for(int i = 0; i < m; i++) {
         for(int j = 0; j < n; j++) {
             if(matrix[i][j] == 0)
@@ -4968,12 +5005,127 @@ bool wordBreak(std::string s, std::vector<std::string>& wordDict) {
     return dp[n];
 }
 
+int lastStoneWeight(std::vector<int>& stones) {
+    std::sort(stones.begin(), stones.end());
+    while(stones.size() > 2) {
+      int tmp_size = stones[stones.size() - 1] - stones[stones.size() - 2];
+      if(tmp_size == 0) {
+        stones.erase(stones.end() - 2, stones.end());
+      } else {
+        stones.erase(stones.end() - 2, stones.end());
+        for(int i = 0; i < stones.size(); i++) {
+          if(tmp_size <= stones[i]) {
+            stones.insert(stones.begin() + i, tmp_size);
+            break;
+          }
+        }
+        if(tmp_size > stones.back())
+          stones.push_back(tmp_size);
+      }
+    }
+    if(stones.size() == 1)
+      return stones[0];
+    return stones[1] - stones[0];  
+}
+
+bool canPlaceFlowers(std::vector<int>& flowerbed, int n) {
+  int res = n;
+  for(int i = 0; i < flowerbed.size(); i++) {
+    if(flowerbed[i] == 1)
+      continue;
+    if(i >= 1 && flowerbed[i-1] == 1)
+      continue;
+    if(i < flowerbed.size() -1 && flowerbed[i+1] == 1)
+      continue;
+    flowerbed[i] = 1;
+    res--;
+    if(res == 0)
+      return true;
+  }
+  return res <= 0;
+}
+
+bool canWinNim(int n) {
+  return n % 4 != 0;
+}
+
+//记录一个数字左边的乘积和右边的乘积
+//左边的乘积和右边的乘积
+std::vector<int> productExceptSelf(std::vector<int>& nums) {
+  std::vector<int> left_product(nums.size(), 0);
+  std::vector<int> right_product(nums.size(), 0);
+  int tmp_left_product = 1;
+  int tmp_right_product = 1;
+  for(int i = 0; i < nums.size(); i++) {
+    left_product[i] = tmp_left_product;
+    tmp_left_product *= nums[i];
+  }
+  for(int i = nums.size() - 1; i >=0; i--) {
+    right_product[i] = tmp_right_product;
+    tmp_right_product *= nums[i];
+  }
+  std::vector<int> result(nums.size(), 0);
+  for(int i = 0; i < nums.size(); i++) {
+    result[i] = left_product[i] * right_product[i];
+  }
+  return result;
+}
+
+//改变当前节点的值，让当前节点指向下下个节点
+void deleteNode(ListNode* node) {
+    node->val = node->next->val;
+    node->next = node->next->next;
+}
+
+std::string reverseWords(std::string s) {
+  std::vector<std::string> words;
+  std::string tmp_word;
+  for(int i = 0; i < s.size(); i++) {
+    if(s[i] == ' ' && !tmp_word.empty()) {
+      words.push_back(tmp_word);
+      tmp_word.clear();
+    } else
+      tmp_word.push_back(s[i]);
+  }
+  if(!tmp_word.empty())
+    words.push_back(tmp_word);
+  std::string result = "";
+  for(int i = 0; i < words.size(); i++) {
+    std::string word = words[i];
+    std::cout<< word << std::endl;
+    std::reverse(word.begin(), word.end());
+    result += word;
+    if(i != (words.size() - 1))
+      result += " ";
+  }
+  return result;
+}
+
+ListNode* sortList(ListNode* head) {
+  std::vector<int> nums;
+  ListNode* p = head;
+  while(p) {
+    nums.push_back(p->val);
+    p = p->next;
+  }
+  std::sort(nums.begin(), nums.end());
+  ListNode* q = head;
+  int start_index = 0;
+  while(q) {
+    q->val = nums[start_index++];
+    q = q->next;
+  }
+  return head;
+}
+
+  ListNode* mergeKLists(std::vector<ListNode*>& lists) {
+      
+  }
+
 int main()
 {
-  std::vector<int> a = {3, 4, 5, 6, 7, 8};
-  auto iter = std::upper_bound(a.begin(), a.end(), 5);
-  std::cout << *(iter-1) << std::endl;
-  std::cout << *iter << std::endl;
+  std::string a = "Let's take LeetCode contest";
+  std::cout<< reverseWords(a) << std::endl;
   return 0;
 }
 
