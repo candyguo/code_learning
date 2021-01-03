@@ -4233,6 +4233,36 @@ std::vector<std::vector<int>> combine1(int n, int k) {
   return results;
 }
 
+void backtracing_permute(std::vector<int>& nums,
+                         std::vector<int> select_indexs,
+                         std::vector<int> result, 
+                         std::vector<std::vector<int>>& results) {
+  if(result.size() == nums.size()) {
+    results.push_back(result);
+    return;
+  }
+  for(int i = 0; i < nums.size(); i++) {
+    auto iter = std::find(select_indexs.begin(), select_indexs.end(), i);
+    if(iter != select_indexs.end())
+      continue;
+    else
+      select_indexs.push_back(i);
+    result.push_back(nums[i]);
+    backtracing_permute(nums, select_indexs, result, results);
+    select_indexs.pop_back();
+    result.pop_back();  
+  }
+}
+
+//全排列
+std::vector<std::vector<int>> permute(std::vector<int>& nums) {
+  std::vector<int> result;
+  std::vector<std::vector<int>> results;
+  std::vector<int> select;
+  backtracing_permute(nums,select, result, results);
+  return results;
+}
+
 void backtracing(int start_index,
           std::unordered_map<char, std::vector<char>>& char_map, 
           const std::string& digits, 
@@ -5118,14 +5148,29 @@ ListNode* sortList(ListNode* head) {
   return head;
 }
 
-  ListNode* mergeKLists(std::vector<ListNode*>& lists) {
-      
-  }
+//两两合并
+ListNode* mergeKLists(std::vector<ListNode*>& lists) {
+    if(lists.empty())
+      return nullptr;
+    if(lists.size() < 2)
+      return lists.front();
+    ListNode* k = mergeTwoLists(lists[0], lists[1]);
+    for(int i = 2; i < lists.size(); i++) {
+      k = mergeTwoLists(k, lists[i]);
+    }
+    return k;
+}
 
 int main()
 {
-  std::string a = "Let's take LeetCode contest";
-  std::cout<< reverseWords(a) << std::endl;
+  std::vector<int> a = {1,2,3,4};
+  std::vector<std::vector<int>> results = permute(a);
+  for(auto result : results) {
+    for(auto e : result) {
+      std::cout<< e<<" ";
+    }
+    std::cout<< std::endl;
+  }
   return 0;
 }
 
