@@ -4942,6 +4942,7 @@ std::vector<int> findDisappearedNumbers(std::vector<int>& nums) {
     return result;
 }
 
+//也可以先水平翻转在转置
 void rotate(std::vector<std::vector<int>>& matrix) {
     int m = matrix.size();
     std::vector<std::vector<int>> result(m, std::vector<int>(m));
@@ -5161,16 +5162,524 @@ ListNode* mergeKLists(std::vector<ListNode*>& lists) {
     return k;
 }
 
+bool isUnique(std::string astr) {
+  std::unordered_map<char, int> char_count;
+  for(auto c : astr) {
+    if(char_count.count(c) == 0)
+      char_count[c] = 1;
+    else
+    {
+      return false;
+    }   
+  }
+  return true;
+}
+
+bool CheckPermutation(std::string s1, std::string s2) {
+  if(s1.size() != s2.size())
+    return false;
+  std::unordered_map<char, int> char_count1;
+  std::unordered_map<char, int> char_count2;
+  for(int i = 0; i < s1.size(); i++) {
+    if(char_count1.count(s1[i]) == 0)
+      char_count1[s1[i]] = 1;
+    else
+      char_count1[s1[i]]++;
+    
+    if(char_count2.count(s2[i]) == 0)
+      char_count2[s2[i]] = 1;
+    else
+      char_count2[s2[i]]++;
+  }
+
+  for(auto iter = char_count1.begin(); iter != char_count1.end(); iter++) {
+    auto c = iter->first;
+    if(char_count2.count(c) == 0)
+      return false;
+    if(char_count1[c] != char_count2[c])
+      return false;  
+  }
+  return true;
+}
+
+std::string replaceSpaces(std::string S, int length) {
+  std::string result;
+  for(int i = 0; i < length; i++) {
+    if(S[i] != ' ')
+      result.push_back(S[i]);
+    else {
+      result.push_back('/%');
+      result.push_back('2');
+      result.push_back('0');
+    }
+  }
+  return result;
+}
+
+bool canPermutePalindrome(std::string s) {
+  std::unordered_map<char, int> char_count;
+  for(int i = 0; i < s.size(); i++) {
+    if(char_count.count(s[i]) == 0)
+      char_count[s[i]] = 1;
+    else
+      char_count[s[i]]++;
+  }
+  int odd_count = 0;
+  for(auto iter = char_count.begin(); iter != char_count.end(); iter++) {
+    auto c = iter->first;
+    if((iter->second % 2) != 0)
+      odd_count++;
+    if(odd_count > 1)
+      return false;  
+  }
+  return true;
+}
+
+bool oneEditAway(std::string first, std::string second) {
+  if(std::abs(int(first.size()) - int(second.size())) > 1)
+    return false;
+  int first_size = first.size();
+  int second_size = second.size();
+  std::cout<< first_size <<" " << second_size << std::endl;
+  if(first_size == second_size) {
+    int diff_count = 0;
+    for(int i = 0; i < first.size(); i++) {
+        if(first[i] != second[i])
+          diff_count++;
+        if(diff_count > 1)
+          return false;  
+    }
+    return true;
+  }
+
+  if(first_size > second_size) {
+    int diff_index = -1;
+    for(int i = 0; i < second.size(); i++) {
+        if(first[i] != second[i]) {
+          diff_index = i;
+          break;
+        }
+    }
+    if(diff_index == -1)
+      return true;
+    else {
+        for(int i = diff_index + 1; i< first.size(); i++) {
+            if(first[i] != second[i-1])
+              return false;
+        }
+    }
+    return true;  
+  }  
+
+  if(first_size < second_size) {
+    int diff_index = -1;
+    for(int i = 0; i < first.size(); i++) {
+        if(first[i] != second[i]) {
+          diff_index = i;
+          break;
+        }
+    }
+    if(diff_index == -1)
+      return true;
+    else {
+        for(int i = diff_index + 1; i< second.size(); i++) {
+            if(second[i] != first[i-1])
+              return false;
+        }
+    }
+    return true;
+  }
+  
+  return false;
+}
+
+std::string compressString(std::string S) {
+  std::vector<std::pair<int, char>> char_count;
+  char pre_char = S[0];
+  int count = 1;
+  for(int i = 1; i < S.size(); i++) {
+    if(S[i] == S[i-1])
+      count++;
+    else {
+      char_count.push_back(std::make_pair(count, pre_char));
+      count = 1;
+      pre_char = S[i];
+    }  
+  }
+  char_count.push_back(std::make_pair(count, pre_char));
+  std::string result = "";
+  for(int i = 0; i < char_count.size(); i++) {
+    result += std::to_string(char_count[i].first);
+    result += char_count[i].second;
+  }
+  if(result.size() < S.size())
+    return result;
+  return S;  
+}
+
+int kthToLast(ListNode* head, int k) {
+  ListNode* p = head;
+  ListNode* q = p;
+  for(int i= 0 ; i<k; i++) {
+    q = q->next;
+  }
+  while(q) {
+    p = p->next;
+    q = q->next;
+  }
+  return p->val;
+}
+
+void setZeroes(std::vector<std::vector<int>>& matrix) {
+  std::vector<std::pair<int, int>> zero_localization;
+  for(int i = 0; i < matrix.size(); i++) {
+    for(int j = 0; j < matrix[0].size(); j++) {
+      if(matrix[i][j] == 0)
+        zero_localization.push_back(std::make_pair(i, j));
+    }
+  }
+
+  for(int i = 0; i < zero_localization.size(); i++) {
+    int row = zero_localization[i].first;
+    int col = zero_localization[i].second;
+    //清除这一行
+    for(int tmp_col = 0; tmp_col < matrix[0].size(); tmp_col++) {
+      matrix[row][tmp_col] = 0;
+    }
+    //清除这一列
+    for(int tmp_row = 0; tmp_row < matrix.size(); tmp_row++) {
+      matrix[tmp_row][col] = 0;
+    }
+  }
+}
+
+//用我做的东西去面试uniform 把路牌加进去更好的完成初始化
+bool isFlipedString(std::string s1, std::string s2) {
+  if(s1.size() != s2.size())
+    return false;
+  if(s1.empty())
+    return true;  
+  s1 = s1 + s1;
+  for(int i =0 ; i< s2.size(); i++) {
+    std::string tmp_str = s1.substr(i, s2.size());
+    if(tmp_str == s2)
+      return true;
+  }
+  return false;  
+}
+
+ListNode* removeDuplicateNodes(ListNode* head) {
+  if(head == nullptr)
+    return nullptr;
+  std::unordered_map<int, int> num_count;
+  ListNode *p = head;
+  num_count[p->val] = 1;
+  ListNode* q = p->next;
+  while(q) {
+    if(num_count.count(q->val) == 0) {
+      num_count[q->val] = 1;
+      p->next = q;
+      p = q;
+      q = q->next; 
+    } else {
+      q = q->next;
+    }
+  }
+  p->next = nullptr;
+  return head;
+}
+
+class TripleInOne {
+public:
+    TripleInOne(int stackSize) {
+      nums.resize(stackSize);
+    }
+    
+    void push(int stackNum, int value) {
+      nums[stackNum].push_back(value);
+    }
+    
+    int pop(int stackNum) {
+      if(isEmpty(stackNum))
+        return -1;
+      int result = nums[stackNum].back();
+      nums[stackNum].erase(nums[stackNum].end()-1);
+      return result;
+    }
+    
+    int peek(int stackNum) {
+      return nums[stackNum].back();
+    }
+    
+    bool isEmpty(int stackNum) {
+      return nums[stackNum].empty();
+    }
+
+    std::vector<std::vector<int>> nums;
+};
+
+bool isPalindrome(ListNode* head) {
+  ListNode* p = head;
+  ListNode* q = head;
+  std::vector<int> nums;
+  while(p) {
+    nums.push_back(p->val);
+    p = p->next;
+  }
+  for(int i = 0; i < nums.size() / 2; i++) {
+    if(nums[i] != nums[nums.size() -1 -i])
+      return false;    
+  }
+  return true;
+}
+
+ListNode *getIntersectionNode1(ListNode *headA, ListNode *headB) {
+  if(headA == nullptr || headB == nullptr)
+    return nullptr;
+  ListNode* p = headA;
+  ListNode* q = headB;
+  int count = 1;
+  while(1) {
+    if(p == q)
+      return p;    
+    p = p->next;
+    q = q->next;
+    if(p == nullptr) {
+      p = headB;
+      count++;
+      if(count > 1)
+        return nullptr;
+    }
+    if(q == nullptr)
+      q = headA;
+  }
+  return nullptr;
+}
+
+ListNode* addTwoNumbers(ListNode* l1, ListNode* l2) {
+  ListNode* result = new ListNode(0);
+  ListNode* p = result;
+  int jinwei = 0;
+  while(l1 && l2) {
+    int num = l1->val + l2->val + jinwei;
+    jinwei = num / 10;
+    num %= 10;
+    ListNode* node = new ListNode(num);
+    p->next = node;
+    p = node;
+    l1 = l1->next;
+    l2 = l2->next;
+  }
+  while(l1) {
+    int num = l1->val + jinwei;
+    jinwei = num / 10;
+    num %= 10;
+    ListNode* node = new ListNode(num);
+    p->next = node;
+    p = node;
+    l1 = l1->next;
+  }
+  while(l2) {
+    int num = l2->val + jinwei;
+    jinwei = num / 10;
+    num %= 10;
+    ListNode* node = new ListNode(num);
+    p->next = node;
+    p = node;
+    l2 = l2->next;
+  }
+  if(jinwei)
+    p->next = new ListNode(1);
+  return result->next;  
+}
+
+//相遇的时候再分别移动一步就可以再次相遇
+ListNode *detectCycle1(ListNode *head) {
+            if(head == nullptr)
+      return nullptr;
+    ListNode* fast = head;
+    ListNode* slow = head;
+    while(1) {
+      slow = slow->next;
+      if(slow == nullptr)
+        return nullptr;
+      if(fast == nullptr)
+        return nullptr;  
+      fast = fast->next;
+      if(fast == nullptr)
+        return nullptr;
+      fast = fast->next;
+      if(fast == slow)
+        break;    
+    }
+    fast = head;
+    while(1) {
+      if(fast == slow)
+        return fast;
+      fast = fast->next;
+      slow = slow->next;  
+    }
+    return nullptr;
+}
+
+class AnimalShelf {
+public:
+    AnimalShelf() {
+
+    }
+    
+    void enqueue(std::vector<int> animal) {
+      if(animal[1] == 0) {
+        cat_q.push_back(animal);
+      }
+      else
+        dog_q.push_back(animal);
+      all.push_back(animal);      
+    }
+    
+    std::vector<int> dequeueAny() {
+      if(all.empty())
+        return {-1, -1};
+      if(all[0][1] == 0)
+        cat_q.erase(cat_q.begin());
+      else
+        dog_q.erase(dog_q.begin());
+      std::vector<int> result = all.front();
+      all.erase(all.begin());
+      return result;      
+    }
+    
+    std::vector<int> dequeueDog() {
+      if(dog_q.empty())
+        return {-1, -1};
+      std::vector<int> result = dog_q.front();
+      int id = result[0];
+      for(int i = 0; i < all.size(); i++) {
+        if(all[i][0] == id)
+          all.erase(all.begin() + i);
+      }
+      dog_q.erase(dog_q.begin());
+    }
+    
+    std::vector<int> dequeueCat() {
+      if(cat_q.empty())
+        return {-1, -1};
+      std::vector<int> result = cat_q.front();
+      int id = result[0];
+      for(int i = 0; i < all.size(); i++) {
+        if(all[i][0] == id)
+          all.erase(all.begin() + i);
+      }
+      cat_q.erase(cat_q.begin());
+    }
+
+    //存储了狗的编号
+    std::vector<std::vector<int>> dog_q;
+    std::vector<std::vector<int>> cat_q;
+
+    std::vector<std::vector<int>> all;
+};
+
+bool findExistPathHelper(int n, std::vector<std::vector<int>>& connections, int start, int target, std::vector<std::vector<bool>>& visited) {
+  if(connections[start][target] == 1)
+    return true;
+  for(int i = 0; i < n; i++) {
+    if(start == i)
+      continue;
+    if(visited[start][i])
+      continue;
+    visited[start][i] = true;
+    if(connections[start][i] == 1) {
+      return findExistPathHelper(n, connections, i, target, visited);
+    }  
+  }  
+}
+
+bool findWhetherExistsPath(int n, std::vector<std::vector<int>>& graph, int start, int target) {
+  std::vector<std::vector<int>> connections(n, std::vector<int>(n, 0));
+  for(int i = 0; i < graph.size(); i++) {
+    auto connection = graph[i];
+    connections[connection[0]][connection[1]] = 1;
+  }
+  std::vector<std::vector<bool>> visited(n, std::vector<bool>(n, false));
+  return findExistPathHelper(n, connections, start, target, visited);
+}
+
+TreeNode* sortedArrayToBST(std::vector<int>& nums) {
+   if(nums.size() == 0)
+     return nullptr;
+   if(nums.size() == 1)
+     return new TreeNode(nums[0]);
+
+   int mid = nums[nums.size() / 2];
+   TreeNode* result = new TreeNode(mid);
+   std::vector<int> left(nums.begin(), nums.begin() + nums.size() / 2);
+   std::vector<int> right(nums.begin() + nums.size() / 2 + 1, nums.end());
+   result->left_child = sortedArrayToBST(left);
+   result->right_child = sortedArrayToBST(right);
+   return result;
+}
+
+std::vector<ListNode*> listOfDepth(TreeNode* tree) {
+  std::vector<ListNode*> result;
+  if(tree == nullptr)
+    return result;
+  std::queue<TreeNode*> q_tree;
+  q_tree.push(tree);
+  result.push_back(new ListNode(tree->val));
+  while(!q_tree.empty()) {
+    std::vector<TreeNode*> cur_level;
+    ListNode* tmp = new ListNode(-1);
+    ListNode* p = tmp;
+    while(!q_tree.empty()) {
+      TreeNode* node = q_tree.front();
+      q_tree.pop();
+      if(node->left_child)
+        cur_level.push_back(node->left_child);
+      if(node->right_child)
+        cur_level.push_back(node->right_child);
+    }
+    for(int i = 0; i < cur_level.size(); i++) {
+      q_tree.push(cur_level[i]);
+      p->next = new ListNode(cur_level[i]->val);
+      p = p->next;
+    }
+    if(tmp->next)
+      result.push_back(tmp->next);
+  }
+  return result;
+}
+
+int waysToStep(int n) {
+  if(n == 1)
+    return 1;
+  if(n == 2)
+    return 2;
+  if(n == 3)
+    return 4;    
+  std::vector<long> results(n+1 ,1);
+  results[1] = 1;
+  results[2] = 2;
+  results[3] = 4;
+  for(int i = 4; i <= n; i++) {
+    results[i] = (results[i-3] % 1000000007 + results[i-2] % 1000000007 + results[i-1] %1000000007) % 1000000007;
+  }
+  return results[n];
+}
+
+std::vector<std::vector<int>> pathWithObstacles(std::vector<std::vector<int>>& obstacleGrid) {
+  
+}
+
 int main()
 {
-  std::vector<int> a = {1,2,3,4};
-  std::vector<std::vector<int>> results = permute(a);
-  for(auto result : results) {
-    for(auto e : result) {
-      std::cout<< e<<" ";
-    }
-    std::cout<< std::endl;
-  }
+  TripleInOne a(1);
+  a.push(0, 1);
+  a.push(0, 2);
+  std::cout<< a.pop(0) << std::endl;
+  //std::cout<< a.pop(0) << std::endl;
+  //std::cout<< a.pop(0) << std::endl;
+  //std::cout<< a.isEmpty(0) << std::endl;
   return 0;
 }
 
